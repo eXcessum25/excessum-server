@@ -1,0 +1,49 @@
+version: "3.9"
+
+networks:
+  vpn:
+    driver: bridge
+  lan:
+    driver: bridge
+
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      - vpn
+    ports:
+      - "${QBITTORRENT_WEB_PORT:-8085}:${QBITTORRENT_WEB_PORT:-8085}"
+      - "${QBITTORRENT_PEER_PORT:-6881}:${QBITTORRENT_PEER_PORT:-6881}"
+      - "${QBITTORRENT_PEER_PORT:-6881}:${QBITTORRENT_PEER_PORT:-6881}/udp"
+      - "${PROWLARR_PORT:-9696}:${PROWLARR_PORT:-9696}"
+      - "${SONARR_PORT:-8989}:${SONARR_PORT:-8989}"
+      - "${RADARR_PORT:-7878}:${RADARR_PORT:-7878}"
+      - "${READARR_PORT:-8787}:${READARR_PORT:-8787}"
+      - "${OVERSEERR_PORT:-5055}:${OVERSEERR_PORT:-5055}"
+    volumes:
+      - ${CONFIG_ROOT}/gluetun:/gluetun
+    env_file:
+      - ./.env
+      - ./.env.secrets
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_PROVIDER}
+      - VPN_TYPE=${VPN_TYPE}
+      - SERVER_COUNTRIES=${VPN_COUNTRIES}
+      - OPENVPN_USER=${OPENVPN_USER}
+      - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - TZ=${TZ}
+      - FIREWALL=on
+      - FIREWALL_OUTBOUND_SUBNETS=${LAN_SUBNETS}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- https://ipinfo.io/ip || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
