@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   plex:
@@ -6,7 +5,6 @@ services:
     container_name: plex
     env_file:
       - ./.env
-      - ./.env.secrets
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -17,6 +15,8 @@ services:
       - lan
     devices:
       - /dev/dri:/dev/dri
+      # Needed for USB tuners or libusb (prevents libusb_init failed)
+      - /dev/bus/usb:/dev/bus/usb
     volumes:
       - ${CONFIG_ROOT}/plex:/config
       - ${TV_DIR}:/tv
@@ -26,68 +26,23 @@ services:
       - "${PLEX_PORT:-32400}:32400/tcp"
     restart: unless-stopped
 
-  jellyfin:
-    image: jellyfin/jellyfin:latest
-    container_name: jellyfin
-    env_file:
-      - ./.env
-      - ./.env.secrets
-    user: ${PUID}:${PGID}
-    networks:
-      - lan
-    devices:
-      - /dev/dri:/dev/dri
-    volumes:
-      - ${CONFIG_ROOT}/jellyfin/config:/config
-      - ${CONFIG_ROOT}/jellyfin/cache:/cache
-      - type: bind
-        source: ${TV_DIR}
-        target: /tv
-        read_only: true
-      - type: bind
-        source: ${TV_UK_DIR}
-        target: /tv-uk
-        read_only: true
-      - type: bind
-        source: ${MOVIES_DIR}
-        target: /movies
-        read_only: true
-    ports:
-      - "${JELLYFIN_PORT:-8096}:8096"
-    restart: unless-stopped
-
-  tautulli:
-    image: lscr.io/linuxserver/tautulli:latest
-    container_name: tautulli
-    env_file:
-      - ./.env
-      - ./.env.secrets
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    networks:
-      - lan
-    volumes:
-      - ${CONFIG_ROOT}/tautulli:/config
-    ports:
-      - "${TAUTULLI_PORT:-8181}:8181"
-    restart: unless-stopped
-    depends_on:
-      - plex
-
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: homeassistant
     env_file:
       - ./.env
-      - ./.env.secrets
     network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
     environment:
       - TZ=${TZ}
     volumes:
       - ${CONFIG_ROOT}/homeassistant:/config
+      - /run/dbus:/run/dbus:ro
     restart: unless-stopped
     # Uncomment and adjust to pass through USB dongles for Zigbee/Z-Wave, etc.
-    # devices:
-    #   - /dev/ttyUSB0:/dev/ttyUSB0
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0
+    #   - /dev/ttyACM0:/dev/ttyACM0
+      - /dev/bus/usb:/dev/bus/usb

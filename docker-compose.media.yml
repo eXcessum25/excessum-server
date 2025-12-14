@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   qbittorrent:
@@ -7,7 +6,6 @@ services:
     network_mode: "service:gluetun"
     env_file:
       - ./.env
-      - ./.env.secrets
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -27,7 +25,6 @@ services:
     network_mode: "service:gluetun"
     env_file:
       - ./.env
-      - ./.env.secrets
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -45,7 +42,6 @@ services:
     network_mode: "service:gluetun"
     env_file:
       - ./.env
-      - ./.env.secrets
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -66,7 +62,6 @@ services:
     network_mode: "service:gluetun"
     env_file:
       - ./.env
-      - ./.env.secrets
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -86,7 +81,6 @@ services:
     network_mode: "service:gluetun"
     env_file:
       - ./.env
-      - ./.env.secrets
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -107,7 +101,6 @@ services:
     network_mode: "service:gluetun"
     env_file:
       - ./.env
-      - ./.env.secrets
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -127,7 +120,6 @@ services:
     network_mode: "service:gluetun"
     env_file:
       - ./.env
-      - ./.env.secrets
     environment:
       - LOG_LEVEL=info
       - LOG_HTML=false

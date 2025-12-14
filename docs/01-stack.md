@@ -13,14 +13,14 @@ Proposed architecture
 ---------------------
 - **Network layout**
   - Dedicated VPN gateway container (gluetun) with its firewall/kill-switch; privacy-sensitive apps share its network namespace (`network_mode: "service:gluetun"`).
-  - Separate LAN-facing network for services that must stay reachable when the VPN drops (Plex/Jellyfin, Tautulli, Home Assistant). They can talk to VPN-only services over Docker networking, but egress is direct.
+  - Separate LAN-facing network for services that must stay reachable when the VPN drops (Plex, Tautulli, Home Assistant). They can talk to VPN-only services over Docker networking, but egress is direct.
   - Healthchecks so VPN clients wait for gluetun healthy; VPN drop only impacts the VPN-routed group.
 - **VPN gateway**
   - `qmcgaw/gluetun` is still the most maintained option and supports NordVPN OpenVPN/WireGuard, built-in firewall, port-forwarding, and `FIREWALL_OUTBOUND_SUBNETS`/`PRIVATE_SUBNETS` to allow LAN access while blocking WAN when the tunnel is down.
   - Configure `HEALTHCHECK` (e.g., `wget -qO- https://ipinfo.io/ip || exit 1`) and `depends_on: condition: service_healthy` for downstream containers.
 - **Service grouping**
   - **VPN-routed (privacy required):** qbittorrent, prowlarr, sonarr, radarr, readarr, overseerr (if exposed externally), flaresolverr, bazarr (optional).
-  - **LAN-first (should survive VPN outages):** Plex (as agreed), Jellyfin, Tautulli, Home Assistant (host or macvlan for mDNS/SSDP discovery), optional media dashboards.
+  - **LAN-first (should survive VPN outages):** Plex (as agreed), Home Assistant (host or macvlan for mDNS/SSDP discovery), optional media dashboards. (Tautulli omitted for now; add later if Plex stats/alerts are needed.)
 - **Storage layout**
   - `./config/<service>/` for app configs, `./data/<service>/` if needed, and bind mounts to existing media/download paths.
   - `.env` for non-secret defaults; `.env.secrets` (git-ignored) for VPN creds, Plex claim, API keys.
@@ -32,7 +32,7 @@ Compose layout (planned)
 ------------------------
 - `docker-compose.yml`: networks + gluetun VPN gateway with exposed ports for VPN-routed apps.
 - `docker-compose.media.yml`: VPN-routed media automation stack.
-- `docker-compose.lan.yml`: LAN-facing services (Plex/Jellyfin, Tautulli, Home Assistant).
+- `docker-compose.lan.yml`: LAN-facing services (Plex, Home Assistant with host networking + NET_ADMIN/NET_RAW for Bluetooth; Tautulli can be added later).
 - `env.example`: template for paths/IDs/timezone; `env.secrets.example`: keys for `.env.secrets` (untracked).
 
 Current files created
@@ -41,7 +41,7 @@ Current files created
 - `env.example` and `env.secrets.example` as templates.
 - `docker-compose.yml` with networks and gluetun (ports exposed for VPN-routed services, healthcheck, firewall/kill-switch).
 - `docker-compose.media.yml` for qbittorrent + arr stack + flaresolverr behind gluetun.
-- `docker-compose.lan.yml` for Plex (non-VPN), Jellyfin, Tautulli, Home Assistant (host mode for discovery).
+- `docker-compose.lan.yml` for Plex (non-VPN) and Home Assistant (host mode for discovery).
 
 How to bring it up (once env files are filled)
 ----------------------------------------------
