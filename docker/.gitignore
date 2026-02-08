@@ -1,3 +1,6 @@
 .env.secrets
-config/
+config/*
+!config/recyclarr/
+config/recyclarr/*
+!config/recyclarr/recyclarr.yml
 data/
