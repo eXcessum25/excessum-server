@@ -7,7 +7,9 @@ COMPOSE_DIR="$ROOT_DIR/docker"
 cd "$COMPOSE_DIR"
 
 docker compose \
-  -f docker-compose.yml \
-  -f docker-compose.media.yml \
-  -f docker-compose.lan.yml \
+  -f docker-compose.vpn.yml \
+  -f docker-compose.plex.yml \
+  -f docker-compose.ha.yml \
+  -f docker-compose.downloads.yml \
+  -f docker-compose.admin.yml \
   down

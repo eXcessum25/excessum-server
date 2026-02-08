@@ -2,8 +2,6 @@
 networks:
   vpn:
     driver: bridge
-  lan:
-    driver: bridge
 
 services:
   gluetun:
@@ -22,8 +20,8 @@ services:
       - "${PROWLARR_PORT:-9696}:${PROWLARR_PORT:-9696}"
       - "${SONARR_PORT:-8989}:${SONARR_PORT:-8989}"
       - "${RADARR_PORT:-7878}:${RADARR_PORT:-7878}"
+      - "${BAZARR_PORT:-6767}:${BAZARR_PORT:-6767}"
       - "${READARR_PORT:-8787}:${READARR_PORT:-8787}"
-      - "${OVERSEERR_PORT:-5055}:${OVERSEERR_PORT:-5055}"
     volumes:
       - ${CONFIG_ROOT}/gluetun:/gluetun
     env_file:
@@ -39,7 +37,7 @@ services:
       - FIREWALL_OUTBOUND_SUBNETS=${LAN_SUBNETS}
 
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- https://ipinfo.io/ip || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9999 || exit 1"]
       interval: 1m
       timeout: 10s
       retries: 3

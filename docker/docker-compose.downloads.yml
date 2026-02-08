@@ -13,7 +13,78 @@ services:
       - WEBUI_PORT=${QBITTORRENT_WEB_PORT}
     volumes:
       - ${CONFIG_ROOT}/qbittorrent:/config
-      - ${DOWNLOADS_DIR}:/downloads
+      - ${QBIT_DOWNLOADS_DIR}:/downloads
+      - ${TORRENT_FILE_LOCATION}:/torrents
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-fsS", "http://127.0.0.1:8085/" ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  qbit-force-seed:
+    build: ../projects/qbit-force-seed
+    container_name: qbit-force-seed
+    network_mode: host
+    env_file:
+      - ./.env
+    environment:
+      # qBittorrent Web UI/API
+      - QBIT_URL=http://127.0.0.1:8085
+      - QBIT_USER=${QBITTORRENT_USER}
+      - QBIT_PASS=${QBITTORRENT_PASS}
+
+      # Behaviour
+      - FORCE_DAYS=15
+      - POLL_SECONDS=900
+      - CATEGORIES=tv,movies
+
+      # Optional: restrict to TorrentLeech torrents only (recommended if you also have other trackers)
+      # Put a substring that appears in the tracker URL:
+      # - TRACKER_MATCH=torrentleech
+    depends_on:
+      qbittorrent:
+        condition: service_healthy
+    restart: unless-stopped
+
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    network_mode: "service:gluetun"
+    env_file:
+      - ./.env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/sonarr:/config
+      - ${TV_DIR}:/tv
+      - ${QBIT_DOWNLOADS_DIR}:/downloads
+      - ${TV_UK_DIR}:/tv-uk
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    network_mode: "service:gluetun"
+    env_file:
+      - ./.env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/radarr:/config
+      - ${MOVIES_DIR}:/movies
+      - ${QBIT_DOWNLOADS_DIR}:/downloads
     depends_on:
       gluetun:
         condition: service_healthy
@@ -36,96 +107,42 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  sonarr:
-    image: lscr.io/linuxserver/sonarr:latest
-    container_name: sonarr
-    network_mode: "service:gluetun"
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
     env_file:
       - ./.env
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
       - TZ=${TZ}
+    network_mode: "service:gluetun"
     volumes:
-      - ${CONFIG_ROOT}/sonarr:/config
+      - ${CONFIG_ROOT}/bazarr:/config
       - ${TV_DIR}:/tv
-      - ${DOWNLOADS_DIR}:/downloads
+      - ${MOVIES_DIR}:/movies
       - ${TV_UK_DIR}:/tv-uk
     depends_on:
       gluetun:
         condition: service_healthy
     restart: unless-stopped
 
-  radarr:
-    image: lscr.io/linuxserver/radarr:latest
-    container_name: radarr
-    network_mode: "service:gluetun"
-    env_file:
-      - ./.env
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG_ROOT}/radarr:/config
-      - ${MOVIES_DIR}:/movies
-      - ${DOWNLOADS_DIR}:/downloads
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    restart: unless-stopped
-
-  readarr:
-    image: lscr.io/linuxserver/readarr:develop
-    container_name: readarr
-    network_mode: "service:gluetun"
-    env_file:
-      - ./.env
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG_ROOT}/readarr:/config
-      - ${BOOKS_DIR}:/books
-      - ${AUDIOBOOKS_DIR}:/audiobooks
-      - ${DOWNLOADS_DIR}:/downloads
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    restart: unless-stopped
-
-  overseerr:
-    image: lscr.io/linuxserver/overseerr:latest
-    container_name: overseerr
-    network_mode: "service:gluetun"
-    env_file:
-      - ./.env
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    volumes:
-      - ${CONFIG_ROOT}/overseerr:/config
-      - ${TV_DIR}:/tv
-      - ${MOVIES_DIR}:/movies
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    restart: unless-stopped
-
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
-    network_mode: "service:gluetun"
-    env_file:
-      - ./.env
-    environment:
-      - LOG_LEVEL=info
-      - LOG_HTML=false
-      - CAPTCHA_SOLVER=none
-      - TZ=${TZ}
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    restart: unless-stopped
+#  readarr:
+#    image: lscr.io/linuxserver/readarr:develop
+#    container_name: readarr
+#    network_mode: "service:gluetun"
+#    env_file:
+#      - ./.env
+#    environment:
+#      - PUID=${PUID}
+#      - PGID=${PGID}
+#      - TZ=${TZ}
+#    volumes:
+#      - ${CONFIG_ROOT}/readarr:/config
+#      - ${BOOKS_DIR}:/books
+#      - ${AUDIOBOOKS_DIR}:/audiobooks
+#      - ${DOWNLOADS_DIR}:/downloads
+#    depends_on:
+#      gluetun:
+#        condition: service_healthy
+#    restart: unless-stopped

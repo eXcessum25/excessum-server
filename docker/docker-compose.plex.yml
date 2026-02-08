@@ -1,0 +1,54 @@
+
+services:
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    env_file:
+      - ./.env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM}
+    network_mode: host
+    volumes:
+      - ${CONFIG_ROOT}/plex:/config
+      - ${TV_DIR}:/tv
+      - ${MOVIES_DIR}:/movies
+      - ${TV_UK_DIR}:/tv-uk
+    restart: unless-stopped
+
+  overseerr:
+    image: lscr.io/linuxserver/overseerr:latest
+    container_name: overseerr
+    network_mode: host
+    env_file:
+      - ./.env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/overseerr:/config
+      - ${TV_DIR}:/tv
+      - ${TV_UK_DIR}:/tv-uk
+      - ${MOVIES_DIR}:/movies
+    restart: unless-stopped
+
+  tautulli:
+    image: lscr.io/linuxserver/tautulli:latest
+    container_name: tautulli
+    env_file:
+      - ./.env
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "8181:8181"
+    volumes:
+      - ${CONFIG_ROOT}/tautulli:/config
+      # Optional but recommended: allow Tautulli to read Plex logs
+      - ${CONFIG_ROOT}/plex:/plex_config:ro
+    restart: unless-stopped

@@ -1,0 +1,44 @@
+services:
+  mosquitto:
+    env_file:
+      - ./.env
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "${MOSQUITO_PORT}:1883"
+    volumes:
+      - ${CONFIG_ROOT}/mosquitto:/mosquitto
+
+  zigbee2mqtt:
+    env_file:
+      - ./.env
+    image: koenkk/zigbee2mqtt
+    container_name: zigbee2mqtt
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+    ports:
+      - "${ZIGBEE_PORT}:8333"   # Zigbee2MQTT UI
+    volumes:
+      - ${CONFIG_ROOT}/zigbee2mqtt:/app/data
+      - /run/udev:/run/udev:ro
+    devices:
+      - /dev/serial/by-id/usb-ITead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_08dce8c9f59aef11b809ad9061ce3355-if00-port0:/dev/ttyZigbee
+
+
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    env_file:
+      - ./.env
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_ROOT}/homeassistant:/config
+      - /run/dbus:/run/dbus:ro
+    restart: unless-stopped
