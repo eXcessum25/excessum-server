@@ -43,6 +43,10 @@ log "Allow Netdata (19999) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 19999 tcp
 ufw_delete_anywhere_port 19999 tcp
 
+log "Allow Dozzle (9999) from LAN only"
+ufw_allow_lan_port "${LAN_CIDR}" 9999 tcp
+ufw_delete_anywhere_port 9999 tcp
+
 log "Now remove global SSH (Anywhere) rule for 22/tcp"
 ufw_delete_anywhere_port 22 tcp
 

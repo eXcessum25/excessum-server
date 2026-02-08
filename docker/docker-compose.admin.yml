@@ -22,3 +22,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${CONFIG_ROOT}/netdata:/etc/netdata
     restart: unless-stopped
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    network_mode: host
+    environment:
+      - DOZZLE_ADDR=:${DOZZLE_PORT}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
