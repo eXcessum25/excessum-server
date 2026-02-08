@@ -26,6 +26,7 @@ cd docker && docker compose \
   -f docker-compose.plex.yml \
   -f docker-compose.downloads.yml \
   -f docker-compose.admin.yml \
+  -f docker-compose.personal.yml \
   ps
 ```
 
@@ -42,7 +43,7 @@ ubuntu-bootstrap/10-ssh-hardening.sh  # SSH lockdown (last, after key setup)
 
 ### Compose File Structure
 
-Five compose files, all loaded together by `run.sh` and `stop.sh`:
+Six compose files, all loaded together by `run.sh` and `stop.sh`:
 
 | File | Purpose |
 |------|---------|
@@ -50,7 +51,8 @@ Five compose files, all loaded together by `run.sh` and `stop.sh`:
 | `docker/docker-compose.downloads.yml` | VPN-routed download services (qBittorrent, Sonarr, Radarr, Prowlarr, Bazarr, qbit-force-seed) |
 | `docker/docker-compose.plex.yml` | LAN-facing media (Plex, Overseerr, Tautulli) |
 | `docker/docker-compose.ha.yml` | Home automation (Home Assistant, Zigbee2MQTT, Mosquitto) |
-| `docker/docker-compose.admin.yml` | Admin/monitoring (Portainer, Netdata) |
+| `docker/docker-compose.admin.yml` | Admin/monitoring (Portainer, Netdata, Filebrowser) |
+| `docker/docker-compose.personal.yml` | Personal services (Immich photo/video management) |
 
 ### Network Design
 
@@ -62,7 +64,9 @@ Five compose files, all loaded together by `run.sh` and `stop.sh`:
 
 **VPN-routed (via Gluetun):** qBittorrent (8085), Prowlarr (9696), Sonarr (8989), Radarr (7878), Bazarr (6767)
 
-**LAN-facing (host network):** Plex (32400), Overseerr, Tautulli (8181), Home Assistant, Zigbee2MQTT (8333), Mosquitto (1883), Portainer, Netdata (19999)
+**LAN-facing (host network):** Plex (32400), Overseerr, Tautulli (8181), Home Assistant, Zigbee2MQTT (8333), Mosquitto (1883), Portainer, Netdata (19999), Filebrowser (8080)
+
+**Personal:** Immich (2283)
 
 ### Storage Layout
 

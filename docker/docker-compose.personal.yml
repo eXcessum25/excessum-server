@@ -1,0 +1,59 @@
+services:
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:${IMMICH_VERSION}
+    container_name: immich-server
+    ports:
+      - ${IMMICH_PORT}:2283
+    volumes:
+      - ${IMMICH_UPLOAD_DIR}:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DB_HOSTNAME=immich-postgres
+      - DB_USERNAME=${IMMICH_DB_USERNAME}
+      - DB_PASSWORD=${IMMICH_DB_PASSWORD}
+      - DB_DATABASE_NAME=${IMMICH_DB_NAME}
+      - REDIS_HOSTNAME=immich-redis
+    depends_on:
+      immich-redis:
+        condition: service_healthy
+      immich-postgres:
+        condition: service_healthy
+    healthcheck:
+      disable: false
+    restart: unless-stopped
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION}
+    container_name: immich-machine-learning
+    volumes:
+      - immich-model-cache:/cache
+    healthcheck:
+      disable: false
+    restart: unless-stopped
+
+  immich-redis:
+    image: valkey/valkey:9-alpine
+    container_name: immich-redis
+    healthcheck:
+      test: valkey-cli ping || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  immich-postgres:
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.2
+    container_name: immich-postgres
+    volumes:
+      - ${IMMICH_DB_DIR}:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${IMMICH_DB_USERNAME}
+      - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}
+      - POSTGRES_DB=${IMMICH_DB_NAME}
+      - POSTGRES_INITDB_ARGS=--data-checksums
+    healthcheck:
+      disable: false
+    restart: unless-stopped
+
+volumes:
+  immich-model-cache:
