@@ -1,7 +1,5 @@
 services:
   mosquitto:
-    env_file:
-      - ./.env
     image: eclipse-mosquitto:2
     container_name: mosquitto
     restart: unless-stopped
@@ -11,8 +9,6 @@ services:
       - ${CONFIG_ROOT}/mosquitto:/mosquitto
 
   zigbee2mqtt:
-    env_file:
-      - ./.env
     image: koenkk/zigbee2mqtt
     container_name: zigbee2mqtt
     depends_on:
@@ -30,8 +26,6 @@ services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     container_name: homeassistant
-    env_file:
-      - ./.env
     network_mode: host
     cap_add:
       - NET_ADMIN

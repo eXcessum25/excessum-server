@@ -60,9 +60,9 @@ Five compose files, all loaded together by `run.sh` and `stop.sh`:
 
 ### Service Groups
 
-**VPN-routed (via Gluetun):** qBittorrent (8085), Prowlarr (9696), Sonarr (8989), Bazarr (6767)
+**VPN-routed (via Gluetun):** qBittorrent (8085), Prowlarr (9696), Sonarr (8989), Radarr (7878), Bazarr (6767)
 
-**LAN-facing (host network):** Plex (32400), Overseerr, Tautulli (8181), Home Assistant, Zigbee2MQTT (8333), Mosquitto (1883), Radarr (7878), Portainer, Netdata (19999)
+**LAN-facing (host network):** Plex (32400), Overseerr, Tautulli (8181), Home Assistant, Zigbee2MQTT (8333), Mosquitto (1883), Portainer, Netdata (19999)
 
 ### Storage Layout
 
@@ -82,14 +82,20 @@ Mergerfs pools multiple physical disks into a single `/srv/storage/media` mountp
 
 ## Configuration
 
-Environment config is in `docker/.env` (secrets) with a template at `docker/env.example`. Key variables:
-- `VPN_PROVIDER`, `VPN_TYPE`, `VPN_COUNTRIES` — VPN settings
-- `LAN_SUBNETS` — Networks allowed to bypass VPN firewall
-- `*_DIR` variables — Host paths for media storage
-- `OPENVPN_USER`/`OPENVPN_PASSWORD` or `WIREGUARD_PRIVATE_KEY` — VPN credentials
-- `PLEX_CLAIM` — Plex server claim token
-- `QBITTORRENT_USER`/`QBITTORRENT_PASS` — qBittorrent credentials
+Environment is split into two files, both loaded via `--env-file` in `run.sh`/`stop.sh`:
+
+| File | Contents | In git? |
+|------|----------|---------|
+| `docker/.env` | Paths, ports, timezone, VPN country, PUID/PGID | Yes |
+| `docker/.env.secrets` | VPN credentials, PLEX_CLAIM, qBittorrent password | No (gitignored) |
+
+A template at `docker/env.example` documents all available variables.
 
 All services run as `PUID:PGID` (1000:1000) for consistent file ownership.
 
 See `docker/docs/01-stack.md` for detailed architecture documentation.
+
+## Conventions
+
+- **No `env_file:` in compose services.** Variables reach containers through explicit `environment:` blocks only. Compose-level `${VAR}` interpolation is handled by `--env-file` flags in `run.sh`/`stop.sh`.
+- **No hardcoded config in compose files.** Ports, paths, and credentials must reference `${VAR}` from `.env`/`.env.secrets`. Constants internal to a container (e.g. `FIREWALL=on`, `VERSION=docker`) are fine.

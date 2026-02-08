@@ -4,8 +4,6 @@ services:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     network_mode: "service:gluetun"
-    env_file:
-      - ./.env
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -19,7 +17,7 @@ services:
       gluetun:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://127.0.0.1:8085/" ]
+      test: [ "CMD", "curl", "-fsS", "http://127.0.0.1:${QBITTORRENT_WEB_PORT}/" ]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -29,11 +27,9 @@ services:
     build: ../projects/qbit-force-seed
     container_name: qbit-force-seed
     network_mode: host
-    env_file:
-      - ./.env
     environment:
       # qBittorrent Web UI/API
-      - QBIT_URL=http://127.0.0.1:8085
+      - QBIT_URL=http://127.0.0.1:${QBITTORRENT_WEB_PORT}
       - QBIT_USER=${QBITTORRENT_USER}
       - QBIT_PASS=${QBITTORRENT_PASS}
 
@@ -55,8 +51,6 @@ services:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
     network_mode: "service:gluetun"
-    env_file:
-      - ./.env
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -75,8 +69,6 @@ services:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     network_mode: "service:gluetun"
-    env_file:
-      - ./.env
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -94,8 +86,6 @@ services:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
     network_mode: "service:gluetun"
-    env_file:
-      - ./.env
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -110,8 +100,6 @@ services:
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
-    env_file:
-      - ./.env
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -131,8 +119,6 @@ services:
 #    image: lscr.io/linuxserver/readarr:develop
 #    container_name: readarr
 #    network_mode: "service:gluetun"
-#    env_file:
-#      - ./.env
 #    environment:
 #      - PUID=${PUID}
 #      - PGID=${PGID}
