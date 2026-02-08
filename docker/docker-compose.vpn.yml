@@ -14,13 +14,13 @@ services:
     networks:
       - vpn
     ports:
-      - "${QBITTORRENT_WEB_PORT:-8085}:${QBITTORRENT_WEB_PORT:-8085}"
-      - "${QBITTORRENT_PEER_PORT:-6881}:${QBITTORRENT_PEER_PORT:-6881}"
-      - "${QBITTORRENT_PEER_PORT:-6881}:${QBITTORRENT_PEER_PORT:-6881}/udp"
-      - "${PROWLARR_PORT:-9696}:${PROWLARR_PORT:-9696}"
-      - "${SONARR_PORT:-8989}:${SONARR_PORT:-8989}"
-      - "${RADARR_PORT:-7878}:${RADARR_PORT:-7878}"
-      - "${BAZARR_PORT:-6767}:${BAZARR_PORT:-6767}"
+      - "${QBITTORRENT_WEB_PORT}:8085"
+      - "6881:6881"
+      - "6881:6881/udp"
+      - "${PROWLARR_PORT}:9696"
+      - "${SONARR_PORT}:8989"
+      - "${RADARR_PORT}:7878"
+      - "${BAZARR_PORT}:6767"
     volumes:
       - ${CONFIG_ROOT}/gluetun:/gluetun
     environment:
