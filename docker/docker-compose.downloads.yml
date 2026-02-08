@@ -133,20 +133,3 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-#  readarr:
-#    image: lscr.io/linuxserver/readarr:develop
-#    container_name: readarr
-#    network_mode: "service:gluetun"
-#    environment:
-#      - PUID=${PUID}
-#      - PGID=${PGID}
-#      - TZ=${TZ}
-#    volumes:
-#      - ${CONFIG_ROOT}/readarr:/config
-#      - ${BOOKS_DIR}:/books
-#      - ${AUDIOBOOKS_DIR}:/audiobooks
-#      - ${DOWNLOADS_DIR}:/downloads
-#    depends_on:
-#      gluetun:
-#        condition: service_healthy
-#    restart: unless-stopped
