@@ -8,6 +8,20 @@ sonarr:
       - template: sonarr-v4-quality-profile-web-1080p
       - template: sonarr-v4-custom-formats-web-1080p
 
+    # Override TRaSH size limits to prefer smaller files (GB/min)
+    quality_definition:
+      type: series
+      qualities:
+        # Target: ~1–2GB for typical 45–60 min episodes
+        - name: WEBDL-1080p
+          min: 15
+          preferred: 35
+          max: 70
+        - name: WEBRip-1080p
+          min: 15
+          preferred: 35
+          max: 70
+
 radarr:
   hd-bluray-web:
     base_url: !env_var RADARR_URL
@@ -17,3 +31,5 @@ radarr:
       - template: radarr-quality-definition-movie
       - template: radarr-quality-profile-hd-bluray-web
       - template: radarr-custom-formats-hd-bluray-web
+
+

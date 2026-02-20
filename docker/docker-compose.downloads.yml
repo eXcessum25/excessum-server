@@ -34,7 +34,7 @@ services:
       - QBIT_PASS=${QBITTORRENT_PASS}
 
       # Behaviour
-      - FORCE_DAYS=15
+      - FORCE_DAYS=20
       - POLL_SECONDS=900
       - CATEGORIES=tv,movies
 
