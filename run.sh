@@ -17,4 +17,4 @@ docker compose \
   -f docker-compose.downloads.yml \
   -f docker-compose.admin.yml \
   -f docker-compose.personal.yml \
-  up -d
+  up -d --remove-orphans
