@@ -1,0 +1,39 @@
+# VCS / IDE / Claude workspace
+# (no path separator = matched against basename, works anywhere in the tree)
+.git
+.idea
+.claude
+
+# Log directories and log databases
+# Using absolute paths since these are under a known location
+/srv/excessum-server/docker/config/*/log
+/srv/excessum-server/docker/config/*/logs
+/srv/excessum-server/docker/config/*/logs.db
+/srv/excessum-server/docker/config/*/logs.db-shm
+/srv/excessum-server/docker/config/*/logs.db-wal
+
+# Application caches
+/srv/excessum-server/docker/config/*/.cache
+/srv/excessum-server/docker/config/*/cache
+/srv/excessum-server/docker/config/recyclarr/cache
+
+# Auto-regenerated media covers (hundreds of MB, rebuilt on startup)
+/srv/excessum-server/docker/config/sonarr/MediaCover
+/srv/excessum-server/docker/config/radarr/MediaCover
+
+# Plex: keep only Plug-in Support/Databases/ — exclude everything else
+# (Cache, Codecs, PhotoTranscoder, Media are all regeneratable)
+/srv/excessum-server/docker/config/plex/Library/Application Support/Plex Media Server/Cache
+/srv/excessum-server/docker/config/plex/Library/Application Support/Plex Media Server/Crash Reports
+/srv/excessum-server/docker/config/plex/Library/Application Support/Plex Media Server/Codecs
+/srv/excessum-server/docker/config/plex/Library/Application Support/Plex Media Server/Logs
+/srv/excessum-server/docker/config/plex/Library/Application Support/Plex Media Server/PhotoTranscoder
+/srv/excessum-server/docker/config/plex/Library/Application Support/Plex Media Server/Media
+
+# Emby: metadata is auto-fetched from TMDB/TVDB on library scan
+# cache/ and logs/ are already covered by the generic patterns above
+/srv/excessum-server/docker/config/emby/metadata
+
+# Runtime lock files
+/srv/excessum-server/docker/config/homeassistant/.ha_run.lock
+/srv/excessum-server/docker/config/qbittorrent/qBittorrent/lockfile

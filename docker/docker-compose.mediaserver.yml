@@ -1,5 +1,9 @@
 
 services:
+
+  ###########################
+  ########## PLEX ###########
+  ###########################
   plex:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
@@ -47,4 +51,25 @@ services:
       - ${CONFIG_ROOT}/tautulli:/config
       # Optional but recommended: allow Tautulli to read Plex logs
       - ${CONFIG_ROOT}/plex:/plex_config:ro
+    restart: unless-stopped
+
+    ###########################
+    ########## EMBY ###########
+    ###########################
+
+  emby:
+    image: lscr.io/linuxserver/emby:latest
+    container_name: emby
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    network_mode: host
+    volumes:
+      - ${CONFIG_ROOT}/emby:/config
+      - ${TV_DIR}:/tv
+      - ${TV_UK_DIR}:/tv-uk
+      - ${MOVIES_DIR}:/movies
+#    devices:
+#      - /dev/dri:/dev/dri
     restart: unless-stopped

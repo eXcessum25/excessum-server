@@ -31,6 +31,10 @@ else
   ufw allow 32400/tcp
 fi
 
+log "Allow Emby (8096) from LAN only"
+ufw_allow_lan_port "${LAN_CIDR}" 8096 tcp
+ufw_delete_anywhere_port 8096 tcp
+
 log "Allow Overseerr (5055) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 5055 tcp
 ufw_delete_anywhere_port 5055 tcp

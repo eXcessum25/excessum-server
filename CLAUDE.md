@@ -49,7 +49,7 @@ Six compose files, all loaded together by `run.sh` and `stop.sh`:
 |------|---------|
 | `docker/docker-compose.vpn.yml` | `vpn` bridge network + Gluetun VPN gateway |
 | `docker/docker-compose.downloads.yml` | VPN-routed download services (qBittorrent, Sonarr, Radarr, Prowlarr, Bazarr, qbit-force-seed) |
-| `docker/docker-compose.plex.yml` | LAN-facing media (Plex, Overseerr, Tautulli) |
+| `docker/docker-compose.mediaserver.yml` | LAN-facing media (Plex, Emby, Overseerr, Tautulli) |
 | `docker/docker-compose.ha.yml` | Home automation (Home Assistant, Zigbee2MQTT, Mosquitto) |
 | `docker/docker-compose.admin.yml` | Admin/monitoring (Portainer, Netdata, Filebrowser) |
 | `docker/docker-compose.personal.yml` | Personal services (Immich photo/video management) |
