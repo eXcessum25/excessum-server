@@ -70,8 +70,10 @@ services:
       - ${TV_DIR}:/tv
       - ${TV_UK_DIR}:/tv-uk
       - ${MOVIES_DIR}:/movies
-#    devices:
-#      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "993"  # render group (host GID) for /dev/dri/renderD128 access
     restart: unless-stopped
 
   tuliprox:
