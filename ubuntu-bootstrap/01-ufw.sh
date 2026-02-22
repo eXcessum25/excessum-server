@@ -35,9 +35,17 @@ log "Allow Emby (8096) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 8096 tcp
 ufw_delete_anywhere_port 8096 tcp
 
+log "Allow Jellyfin (8097) from LAN only"
+ufw_allow_lan_port "${LAN_CIDR}" 8097 tcp
+ufw_delete_anywhere_port 8097 tcp
+
 log "Allow Overseerr (5055) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 5055 tcp
 ufw_delete_anywhere_port 5055 tcp
+
+log "Allow Jellyseerr (5056) from LAN only"
+ufw_allow_lan_port "${LAN_CIDR}" 5056 tcp
+ufw_delete_anywhere_port 5056 tcp
 
 log "Allow Portainer (9000) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 9000 tcp
