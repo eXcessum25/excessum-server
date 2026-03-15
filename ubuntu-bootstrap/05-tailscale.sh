@@ -26,6 +26,9 @@ systemctl enable --now tailscaled
 
 log "Fetching Tailscale HTTPS certificate (requires prior 'tailscale up' authentication)"
 if tailscale status &>/dev/null; then
+    CERT_DIR="/var/lib/tailscale/certs"
+    mkdir -p "${CERT_DIR}"
+    cd "${CERT_DIR}"
     tailscale cert
     log "Certificate fetched. Your Magic DNS hostname: $(tailscale status --json | python3 -c 'import sys,json; s=json.load(sys.stdin); print(s["Self"]["DNSName"].rstrip("."))')"
 else
