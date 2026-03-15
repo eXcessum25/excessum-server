@@ -6,6 +6,7 @@ services:
       - ${IMMICH_PORT}:2283
     volumes:
       - ${IMMICH_UPLOAD_DIR}:/usr/src/app/upload
+      - ${PERSONAL_VIDEOS_DIR}:/videos:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
       - DB_HOSTNAME=immich-postgres
@@ -45,7 +46,7 @@ services:
     image: ghcr.io/immich-app/postgres:14-vectorchord0.4.2
     container_name: immich-postgres
     volumes:
-      - ${IMMICH_DB_DIR}:/var/lib/postgresql/data
+      - ${CONFIG_ROOT}/immich-db:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=${IMMICH_DB_USERNAME}
       - POSTGRES_PASSWORD=${IMMICH_DB_PASSWORD}

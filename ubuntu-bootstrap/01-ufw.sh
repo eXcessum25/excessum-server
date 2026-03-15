@@ -8,6 +8,9 @@ source "${SCRIPT_DIR}/lib/ufw.sh"
 
 require_root
 
+log "Resetting UFW to clear all existing rules"
+ufw --force reset
+
 log "Configuring UFW defaults"
 ufw default deny incoming
 ufw default allow outgoing
@@ -24,28 +27,16 @@ log "Allow Zigbee2MQTT UI (8333) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 8333 tcp
 ufw_delete_anywhere_port 8333 tcp
 
-log "Leave Plex (32400) open to Anywhere (for now)"
-if ufw status | grep -Eq "32400/tcp.*ALLOW IN"; then
-  log "Plex rule already present"
-else
-  ufw allow 32400/tcp
-fi
-
-log "Allow Emby (8096) from LAN only"
+log "Allow Jellyfin (8096) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 8096 tcp
 ufw_delete_anywhere_port 8096 tcp
 
-log "Allow Jellyfin (8097) from LAN only"
-ufw_allow_lan_port "${LAN_CIDR}" 8097 tcp
-ufw_delete_anywhere_port 8097 tcp
+log "Allow Jellyfin (8096) from Docker bridge (Gluetun-routed services e.g. Sonarr/Radarr)"
+ufw allow from 172.20.0.0/16 to any port 8096 proto tcp
 
-log "Allow Overseerr (5055) from LAN only"
+log "Allow Jellyseerr (5055) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 5055 tcp
 ufw_delete_anywhere_port 5055 tcp
-
-log "Allow Jellyseerr (5056) from LAN only"
-ufw_allow_lan_port "${LAN_CIDR}" 5056 tcp
-ufw_delete_anywhere_port 5056 tcp
 
 log "Allow Portainer (9000) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 9000 tcp
