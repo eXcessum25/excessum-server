@@ -28,15 +28,23 @@ services:
       - VPN_SERVICE_PROVIDER=${VPN_PROVIDER}
       - VPN_TYPE=${VPN_TYPE}
       - SERVER_COUNTRIES=${VPN_COUNTRIES}
+      - SERVER_CITIES=${VPN_CITIES}
       - OPENVPN_USER=${OPENVPN_USER}
       - OPENVPN_PASSWORD=${OPENVPN_PASSWORD}
       - TZ=${TZ}
       - FIREWALL=on
       - FIREWALL_OUTBOUND_SUBNETS=${LAN_SUBNETS}
+      # Disable DNS block list downloads — they race with VPN startup and add no value here
+      - BLOCK_MALICIOUS=off
+      - BLOCK_SURVEILLANCE=off
+      - BLOCK_ADS=off
+      # Give up on unresponsive servers quickly so Gluetun cycles to a new IP faster
+      - OPENVPN_FLAGS=--connect-retry-max 2
 
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9999 || exit 1"]
-      interval: 1m
-      timeout: 10s
-      retries: 3
+      test: /gluetun-entrypoint healthcheck
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 1
     restart: unless-stopped

@@ -17,4 +17,5 @@ docker compose \
   -f docker-compose.mediaserver.yml \
   -f docker-compose.admin.yml \
   -f docker-compose.immich.yml \
+  -f docker-compose.frigate.yml \
   up -d --remove-orphans

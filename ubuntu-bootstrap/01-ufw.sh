@@ -50,6 +50,16 @@ log "Allow Dozzle (9999) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 9999 tcp
 ufw_delete_anywhere_port 9999 tcp
 
+log "Allow Frigate NVR web UI (8971) from LAN only"
+ufw_allow_lan_port "${LAN_CIDR}" 8971 tcp
+ufw_delete_anywhere_port 8971 tcp
+
+log "Allow Frigate NVR WebRTC live view (8555) from LAN only"
+ufw_allow_lan_port "${LAN_CIDR}" 8555 tcp
+ufw_delete_anywhere_port 8555 tcp
+ufw_allow_lan_port "${LAN_CIDR}" 8555 udp
+ufw_delete_anywhere_port 8555 udp
+
 log "Now remove global SSH (Anywhere) rule for 22/tcp"
 ufw_delete_anywhere_port 22 tcp
 

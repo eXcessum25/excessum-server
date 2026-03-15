@@ -1,0 +1,25 @@
+services:
+
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:stable
+    container_name: frigate
+    network_mode: host
+    privileged: true
+    shm_size: "512mb"
+    tmpfs:
+      - /tmp/cache:size=256m
+    environment:
+      - TZ=${TZ}
+      - FRIGATE_RTSP_USER=${FRIGATE_RTSP_USER}
+      - FRIGATE_RTSP_PASSWORD=${FRIGATE_RTSP_PASSWORD}
+    volumes:
+      - ${CONFIG_ROOT}/frigate:/config
+      - ${CCTV_STORAGE_DIR}:/media/frigate
+      - /etc/localtime:/etc/localtime:ro
+    devices:
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    group_add:
+      - "993"  # render group (host GID) for /dev/dri/renderD128 access
+    depends_on:
+      - mosquitto
+    restart: unless-stopped

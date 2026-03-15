@@ -15,4 +15,5 @@ docker compose \
   -f docker-compose.downloads.yml \
   -f docker-compose.admin.yml \
   -f docker-compose.immich.yml \
+  -f docker-compose.frigate.yml \
   down
