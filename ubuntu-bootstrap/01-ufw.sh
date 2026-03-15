@@ -60,6 +60,12 @@ ufw_delete_anywhere_port 8555 tcp
 ufw_allow_lan_port "${LAN_CIDR}" 8555 udp
 ufw_delete_anywhere_port 8555 udp
 
+log "Allow all traffic in via Tailscale interface (auth handled by Tailscale)"
+ufw allow in on tailscale0
+
+log "Allow Tailscale WireGuard (41641/udp) for direct peer connections"
+ufw allow 41641/udp
+
 log "Now remove global SSH (Anywhere) rule for 22/tcp"
 ufw_delete_anywhere_port 22 tcp
 

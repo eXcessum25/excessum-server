@@ -1,0 +1,15 @@
+services:
+  caddy:
+    image: caddy:alpine
+    container_name: caddy
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - TAILSCALE_HOSTNAME=${TAILSCALE_HOSTNAME}
+    volumes:
+      - ${CONFIG_ROOT}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /var/lib/tailscale/certs:/certs:ro
+      - caddy_data:/data
+
+volumes:
+  caddy_data:

@@ -18,4 +18,5 @@ docker compose \
   -f docker-compose.admin.yml \
   -f docker-compose.immich.yml \
   -f docker-compose.frigate.yml \
+  -f docker-compose.caddy.yml \
   up -d --remove-orphans
