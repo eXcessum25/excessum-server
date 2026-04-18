@@ -46,3 +46,53 @@ services:
       - PUID=${PUID}
       - PGID=${PGID}
     restart: unless-stopped
+
+  ntfy:
+    image: binwiederhier/ntfy:latest
+    container_name: ntfy
+    command: serve
+    ports:
+      - ${NTFY_PORT}:80
+    environment:
+      - TZ=${TZ}
+      - NTFY_CACHE_FILE=/var/cache/ntfy/cache.db
+    volumes:
+      - ${CONFIG_ROOT}/ntfy/cache:/var/cache/ntfy
+    restart: unless-stopped
+
+  healthchecks:
+    image: healthchecks/healthchecks:latest
+    container_name: healthchecks
+    ports:
+      - ${HC_PORT}:8000
+    environment:
+      - SECRET_KEY=${HC_SECRET_KEY}
+      - DEBUG=False
+      - ALLOWED_HOSTS=${SERVER_IP},localhost,server
+      - SITE_ROOT=http://${SERVER_IP}:${HC_PORT}
+      - DB=sqlite
+      - DB_NAME=/data/hc.sqlite
+      - REGISTRATION_OPEN=False
+      - INTEGRATIONS_ALLOW_PRIVATE_IPS=True
+    volumes:
+      - ${CONFIG_ROOT}/healthchecks:/data
+    restart: unless-stopped
+
+  hc-heartbeat:
+    image: alpine:latest
+    container_name: hc-heartbeat
+    network_mode: "service:gluetun"
+    environment:
+      - HC_PING_URL=http://${SERVER_IP}:${HC_PORT}/ping/${HC_CHECK_UUID}
+    command: >-
+      sh -c "apk add --no-cache curl > /dev/null 2>&1 &&
+      while true; do
+        curl -m 10 -sf https://1.1.1.1 > /dev/null 2>&1 &&
+        curl -m 5 -s $$HC_PING_URL;
+        sleep 300;
+      done"
+    depends_on:
+      gluetun:
+        condition: service_healthy
+    restart: unless-stopped
+    

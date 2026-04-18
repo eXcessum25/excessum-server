@@ -50,6 +50,10 @@ log "Allow Dozzle (9999) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 9999 tcp
 ufw_delete_anywhere_port 9999 tcp
 
+log "Allow Healthchecks (8088) from LAN only"
+ufw_allow_lan_port "${LAN_CIDR}" 8088 tcp
+ufw_delete_anywhere_port 8088 tcp
+
 log "Allow Frigate NVR web UI (8971) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 8971 tcp
 ufw_delete_anywhere_port 8971 tcp

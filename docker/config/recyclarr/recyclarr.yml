@@ -15,12 +15,12 @@ sonarr:
         # Target: ~1–2GB for typical 45–60 min episodes
         - name: WEBDL-1080p
           min: 15
-          preferred: 35
-          max: 70
+          preferred: 50
+          max: 90
         - name: WEBRip-1080p
           min: 15
-          preferred: 35
-          max: 70
+          preferred: 50
+          max: 90
 
 radarr:
   hd-bluray-web:
