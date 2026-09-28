@@ -45,6 +45,6 @@ services:
       test: /gluetun-entrypoint healthcheck
       interval: 5s
       timeout: 5s
-      start_period: 30s
-      retries: 1
+      start_period: 180s
+      retries: 3
     restart: unless-stopped

@@ -92,7 +92,7 @@ services:
     restart: unless-stopped
 
   tuliprox:
-    image: ghcr.io/euzu/tuliprox:latest
+    image: ghcr.io/euzu/tuliprox:${TULIPROX_VERSION}
     container_name: tuliprox
     network_mode: "service:gluetun"
     depends_on:
@@ -101,9 +101,16 @@ services:
       - TZ=${TZ}
       - PUID=${PUID}
       - PGID=${PGID}
-      - IPTV_HOST=${IPTV_HOST}
-      - IPTV_USER=${IPTV_USER}
-      - IPTV_PASS=${IPTV_PASS}
+      - IPTV_SPORT_URL=${IPTV_SPORT_URL}
+      - IPTV_SPORT_EPG_URL=${IPTV_SPORT_EPG_URL}
+      - IPTV_MOVIES_URL=${IPTV_MOVIES_URL}
+      - IPTV_MOVIES_EPG_URL=${IPTV_MOVIES_EPG_URL}
+      - IPTV_XXX_URL=${IPTV_XXX_URL}
+      - IPTV_XXX_EPG_URL=${IPTV_XXX_EPG_URL}
+      - IPTV_SERIES_URL=${IPTV_SERIES_URL}
+      - IPTV_SERIES_EPG_URL=${IPTV_SERIES_EPG_URL}
+      - IPTV_TV_URL=${IPTV_TV_URL}
+      - IPTV_TV_EPG_URL=${IPTV_TV_EPG_URL}
       - SERVER_IP=${SERVER_IP}
       - TULIPROX_USERNAME=${TULIPROX_USERNAME}
       - TULIPROX_PASSWORD=${TULIPROX_PASSWORD}
