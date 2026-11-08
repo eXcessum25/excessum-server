@@ -1,105 +1,105 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for AI assistants (Claude Code, Hermes) working in this repository.
+Last audited against the running host: 2026-11-08.
 
 ## Project Overview
 
-Docker Compose infrastructure for a home media and home automation stack. Uses a VPN-first architecture where privacy-sensitive download services route through NordVPN via Gluetun, while LAN-facing services (Plex, Home Assistant) remain accessible during VPN outages.
+Docker Compose infrastructure for a single Ubuntu home server (`excessum`, LAN IP in `docker/.env`).
+Main use: Jellyfin media + *arr automation. Also Immich (photos), Frigate (NVR) and Home Assistant
+(HA is installed but has no real automations yet).
+
+Privacy-sensitive download services route through NordVPN via Gluetun. LAN-facing services use
+host networking so they stay reachable when the VPN is down.
 
 ## Commands
 
-**Start all services:**
+**Start / update all services** (pulls images, then `up -d --remove-orphans`):
 ```bash
 ./run.sh
 ```
+**Stop all services:** `./stop.sh`
 
-**Stop all services:**
+**Status** (always pass the same env files and -f list as `run.sh`):
 ```bash
-./stop.sh
+cd docker && docker compose --env-file .env --env-file .env.secrets \
+  -f docker-compose.vpn.yml -f docker-compose.ha.yml -f docker-compose.downloads.yml \
+  -f docker-compose.mediaserver.yml -f docker-compose.admin.yml -f docker-compose.immich.yml \
+  -f docker-compose.frigate.yml -f docker-compose.caddy.yml ps
 ```
+If you add a compose file, update BOTH `run.sh` and `stop.sh`.
 
-**Check container health:**
-```bash
-cd docker && docker compose \
-  -f docker-compose.vpn.yml \
-  -f docker-compose.ha.yml \
-  -f docker-compose.plex.yml \
-  -f docker-compose.downloads.yml \
-  -f docker-compose.admin.yml \
-  -f docker-compose.personal.yml \
-  ps
+**Bootstrap a fresh Ubuntu server** (as root, in order):
+`ubuntu-bootstrap/` 00-ubuntu, 01-ufw, 02-storage, 03-docker, 04-restic, 05-tailscale, 10-ssh-hardening (last).
+
+## Compose files
+
+| File | Contents |
+|------|----------|
+| `docker-compose.vpn.yml` | `vpn` bridge network + Gluetun (NordVPN, currently OpenVPN) |
+| `docker-compose.downloads.yml` | qBittorrent, Sonarr, Radarr, Prowlarr, Bazarr, Recyclarr, Unpackerr (all via Gluetun); qbit-force-seed (host net) |
+| `docker-compose.mediaserver.yml` | Jellyfin, Jellyseerr (host net); Tuliprox (via Gluetun) |
+| `docker-compose.ha.yml` | Home Assistant (host), Zigbee2MQTT, Mosquitto |
+| `docker-compose.admin.yml` | Portainer, Netdata, Dozzle, Filebrowser, ntfy, Healthchecks, hc-heartbeat (via Gluetun) |
+| `docker-compose.immich.yml` | Immich server, machine-learning, Redis (valkey), Postgres |
+| `docker-compose.frigate.yml` | Frigate NVR (host net) |
+| `docker-compose.caddy.yml` | Caddy reverse proxy with Tailscale HTTPS certs |
+
+Plex, Overseerr, Tautulli and Emby have been removed (replaced by Jellyfin/Jellyseerr).
+
+## Network design
+
+- **Via Gluetun** (`network_mode: "service:gluetun"`): qBittorrent, Sonarr, Radarr, Prowlarr, Bazarr,
+  Recyclarr, Unpackerr, Tuliprox, hc-heartbeat. Their ports are published on the `gluetun` service.
+  Gluetun has a healthcheck and a firewall kill-switch.
+- **Known failure mode:** when Gluetun restarts/recreates, containers sharing its namespace lose
+  networking and must be restarted too. (`depends_on: service_healthy` only helps at startup.)
+- **Host network:** Jellyfin, Jellyseerr, Home Assistant, Frigate, Caddy, Portainer, Netdata, Dozzle, qbit-force-seed.
+- hc-heartbeat pings Healthchecks from inside the VPN namespace, so a missing ping indicates VPN trouble.
+
+## Storage
+
 ```
-
-**Bootstrap a fresh Ubuntu server** (run scripts in order as root):
-```bash
-ubuntu-bootstrap/00-ubuntu.sh   # Base packages, mergerfs
-ubuntu-bootstrap/01-ufw.sh      # Firewall
-ubuntu-bootstrap/02-storage.sh  # Disk mounts & mergerfs pool
-ubuntu-bootstrap/03-docker.sh   # Docker Engine
-ubuntu-bootstrap/10-ssh-hardening.sh  # SSH lockdown (last, after key setup)
+/                      ubuntu-vg LV, ~231G  (Docker, this repo + app configs)
+/srv/storage/disks/das1, das2   physical data disks (~13T each)
+/srv/storage/media     mergerfs pool of das1+das2 (movies, tv, tv-uk, personal, backups)
+/srv/storage/downloads dedicated disk (qBittorrent)
+/srv/storage/cctv      dedicated disk (Frigate)
 ```
-
-## Architecture
-
-### Compose File Structure
-
-Six compose files, all loaded together by `run.sh` and `stop.sh`:
-
-| File | Purpose |
-|------|---------|
-| `docker/docker-compose.vpn.yml` | `vpn` bridge network + Gluetun VPN gateway |
-| `docker/docker-compose.downloads.yml` | VPN-routed download services (qBittorrent, Sonarr, Radarr, Prowlarr, Bazarr, qbit-force-seed) |
-| `docker/docker-compose.mediaserver.yml` | LAN-facing media (Plex, Emby, Overseerr, Tautulli) |
-| `docker/docker-compose.ha.yml` | Home automation (Home Assistant, Zigbee2MQTT, Mosquitto) |
-| `docker/docker-compose.admin.yml` | Admin/monitoring (Portainer, Netdata, Filebrowser) |
-| `docker/docker-compose.personal.yml` | Personal services (Immich photo/video management) |
-
-### Network Design
-
-- **VPN-routed services** use `network_mode: "service:gluetun"` to share the VPN gateway's network namespace. Gluetun exposes ports for all of them and has a healthcheck; downstream services use `depends_on: condition: service_healthy`.
-- **LAN-facing services** use `network_mode: host` for direct LAN access (Plex needs it for streaming, Home Assistant for mDNS/SSDP discovery).
-- Gluetun's built-in firewall with kill-switch prevents traffic leaks if VPN drops.
-
-### Service Groups
-
-**VPN-routed (via Gluetun):** qBittorrent (8085), Prowlarr (9696), Sonarr (8989), Radarr (7878), Bazarr (6767)
-
-**LAN-facing (host network):** Plex (32400), Overseerr, Tautulli (8181), Home Assistant, Zigbee2MQTT (8333), Mosquitto (1883), Portainer, Netdata (19999), Filebrowser (8080)
-
-**Personal:** Immich (2283)
-
-### Storage Layout
-
-Mergerfs pools multiple physical disks into a single `/srv/storage/media` mountpoint (configured by `ubuntu-bootstrap/02-storage.sh`):
-```
-/srv/storage/
-├── downloads/    # qBittorrent downloads (dedicated disk)
-├── disks/
-│   ├── das1/     # Physical disk 1
-│   └── das2/     # Physical disk 2
-└── media/        # mergerfs pool of das1 + das2 (movies, tv, tv-uk)
-```
-
-### Custom Projects
-
-**`projects/qbit-force-seed/`** — Python container that polls qBittorrent API and force-seeds recently completed torrents for a configurable number of days (default 15) to satisfy private tracker H&R rules.
+App configs live in `docker/config/<service>` (git-ignored except recyclarr.yml).
 
 ## Configuration
 
-Environment is split into two files, both loaded via `--env-file` in `run.sh`/`stop.sh`:
-
 | File | Contents | In git? |
 |------|----------|---------|
-| `docker/.env` | Paths, ports, timezone, VPN country, PUID/PGID | Yes |
-| `docker/.env.secrets` | VPN credentials, PLEX_CLAIM, qBittorrent password | No (gitignored) |
+| `docker/.env` | Paths, ports, TZ, VPN country, PUID/PGID, image versions | Yes |
+| `docker/.env.secrets` | VPN credentials, DB passwords etc. | No (`.env.secrets.example` is the template) |
 
-A template at `docker/env.example` documents all available variables.
+All services run as PUID:PGID 1000:1000 unless the image requires otherwise.
 
-All services run as `PUID:PGID` (1000:1000) for consistent file ownership.
+## Backups
 
-See `docker/docs/01-stack.md` for detailed architecture documentation.
+`projects/restic-backup/` runs daily at 05:00 (`/etc/cron.d/restic-backup`) and snapshots this directory to
+`/srv/storage/media/backups/server` (unencrypted restic repo, 7 daily / 4 weekly / 6 monthly).
+**Limitations:** the repo is on the same mergerfs pool as the media (not offsite); the Immich DB and
+Immich uploads are NOT covered by this job.
+
+## Custom projects
+
+- `projects/qbit-force-seed/` — polls qBittorrent and force-seeds completed torrents for N days (H&R rules).
+- `projects/restic-backup/` — see above.
 
 ## Conventions
 
-- **No `env_file:` in compose services.** Variables reach containers through explicit `environment:` blocks only. Compose-level `${VAR}` interpolation is handled by `--env-file` flags in `run.sh`/`stop.sh`.
-- **No hardcoded config in compose files.** Ports, paths, and credentials must reference `${VAR}` from `.env`/`.env.secrets`. Constants internal to a container (e.g. `FIREWALL=on`, `VERSION=docker`) are fine.
+- **No `env_file:` in compose services.** Pass variables via explicit `environment:` blocks.
+- **No hardcoded config in compose files.** Ports, paths, credentials come from `${VAR}` in `.env`/`.env.secrets`.
+  Container-internal constants (e.g. `FIREWALL=on`) are fine.
+- Prefer pinned image versions (see `TULIPROX_VERSION`); many images still use `:latest` — pin when touching them.
+- Never commit `.env.secrets`, `*.key`, `*.crt`.
+
+## Notes for Hermes (home server assistant)
+
+- Hermes runs as user `hermes` with restricted access: Docker via a filtered proxy, logs via `hermes-docker-logs <name>`.
+- Git needs `safe.directory` for this repo (ownership differs from the hermes user).
+- Prefer read-only investigation first; propose changes to compose/.env as diffs for Alan to approve.
+- Don't commit or run `./run.sh` without Alan's say-so.
