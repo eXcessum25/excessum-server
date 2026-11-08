@@ -96,7 +96,9 @@ services:
     container_name: tuliprox
     network_mode: "service:gluetun"
     depends_on:
-      - gluetun
+      gluetun:
+        condition: service_healthy
+        restart: true
     environment:
       - TZ=${TZ}
       - PUID=${PUID}
@@ -105,8 +107,6 @@ services:
       - IPTV_SPORT_EPG_URL=${IPTV_SPORT_EPG_URL}
       - IPTV_MOVIES_URL=${IPTV_MOVIES_URL}
       - IPTV_MOVIES_EPG_URL=${IPTV_MOVIES_EPG_URL}
-      - IPTV_XXX_URL=${IPTV_XXX_URL}
-      - IPTV_XXX_EPG_URL=${IPTV_XXX_EPG_URL}
       - IPTV_SERIES_URL=${IPTV_SERIES_URL}
       - IPTV_SERIES_EPG_URL=${IPTV_SERIES_EPG_URL}
       - IPTV_TV_URL=${IPTV_TV_URL}
