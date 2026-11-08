@@ -144,6 +144,31 @@ def check_gluetun():
     notes.append(f"gluetun {health}, {connects} connect(s)/24h")
 
 
+def check_mounts():
+    """Every real filesystem in /etc/fstab must be mounted, and no formatted disk may sit unmounted.
+
+    A data disk silently missing makes mergerfs/Sonarr see a smaller library (files 'vanish').
+    """
+    with open("/proc/mounts") as f:
+        mounted = {l.split()[1] for l in f}
+    missing = []
+    with open("/etc/fstab") as f:
+        for line in f:
+            parts = line.split()
+            if len(parts) >= 3 and not line.lstrip().startswith("#") and parts[2] in ("ext4", "xfs", "btrfs", "fuse.mergerfs"):
+                if parts[1] not in mounted:
+                    missing.append(parts[1])
+    if missing:
+        problems.append("fstab filesystems NOT mounted: " + ", ".join(missing))
+    rc, out = run(["lsblk", "-rno", "NAME,FSTYPE,MOUNTPOINT,SIZE", "-b"])
+    for l in out.splitlines():
+        p = l.split()
+        if len(p) == 3 and p[1] in ("ext4", "xfs", "btrfs") and int(p[2]) > 500e9:  # fs, no mountpoint, big
+            problems.append(f"large disk /dev/{p[0]} ({int(p[2]) / 1e12:.1f} TB, {p[1]}) is not mounted")
+    if not missing:
+        notes.append("all fstab filesystems mounted")
+
+
 # ----------------------------------------------------------------------- disks
 def check_disks():
     for path, (min_free_gb, max_pct) in DISKS.items():
@@ -268,7 +293,7 @@ def check_backup():
 
 
 def main():
-    for fn in (check_containers, check_gluetun, check_disks, check_qbit_logs, check_qbit_activity, check_arrs, check_backup):
+    for fn in (check_containers, check_mounts, check_gluetun, check_disks, check_qbit_logs, check_qbit_activity, check_arrs, check_backup):
         try:
             fn()
         except Exception as e:  # noqa
