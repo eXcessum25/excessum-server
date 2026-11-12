@@ -34,6 +34,13 @@ If you add a compose file, update BOTH `run.sh` and `stop.sh`.
 **Bootstrap a fresh Ubuntu server** (as root, in order):
 `ubuntu-bootstrap/` 00-ubuntu, 01-ufw, 02-storage, 03-docker, 04-restic, 05-tailscale, 10-ssh-hardening (last).
 
+**Hermes access layer** (after 03-docker and after this repo is cloned to its final path):
+`ubuntu-bootstrap/hermes/install.sh`, as root. Sets up the `hermes` system user, its filesystem
+ACLs, filtered Docker proxy and sudoers rules. See `ubuntu-bootstrap/hermes/README.md` for the
+model, what it deliberately does NOT cover (installing `hermes-agent` itself and its gateway
+service), and known gaps. Re-run `01-acls.sh` in that directory after the stack has been up a
+while, to catch secrets newly created by services since the last run.
+
 ## Compose files
 
 | File | Contents |

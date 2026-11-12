@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Allows `sudo hermes-systemctl-status <unit>` without full sudo on systemctl. Each argument
+# must look like a unit name (start with alnum): this specifically rejects "-H", "-M",
+# "--user" and anything else flag-shaped, because "-H user@host" would make root open an SSH
+# connection as that user. "--" before "$@" is a second, redundant layer: it tells systemctl
+# itself to read everything after it as a unit name, never an option, in case the check above
+# is ever loosened.
+for arg in "$@"; do
+  if [[ ! "$arg" =~ ^[A-Za-z0-9][A-Za-z0-9@._-]*$ ]]; then
+    echo "hermes-systemctl-status: rejected argument: $arg" >&2
+    exit 1
+  fi
+done
+exec /usr/bin/systemctl --no-pager --full status -- "$@"
