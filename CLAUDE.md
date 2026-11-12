@@ -6,8 +6,10 @@ Last audited against the running host: 2026-11-08.
 ## Project Overview
 
 Docker Compose infrastructure for a single Ubuntu home server (`excessum`, LAN IP in `docker/.env`).
-Main use: Jellyfin media + *arr automation. Also Immich (photos), Frigate (NVR) and Home Assistant
-(HA is installed but has no real automations yet).
+Main use: Jellyfin media + *arr automation. Also Immich (photos).
+Home Assistant, Zigbee2MQTT, Mosquitto and Frigate are switched OFF (2026-11-10): their compose files are kept
+but not listed in `run.sh`/`stop.sh`. To re-enable, add `-f docker-compose.ha.yml` / `-f docker-compose.frigate.yml` back
+to both scripts (Frigate needs Mosquitto from the ha file).
 
 Privacy-sensitive download services route through NordVPN via Gluetun. LAN-facing services use
 host networking so they stay reachable when the VPN is down.
@@ -23,9 +25,9 @@ host networking so they stay reachable when the VPN is down.
 **Status** (always pass the same env files and -f list as `run.sh`):
 ```bash
 cd docker && docker compose --env-file .env --env-file .env.secrets \
-  -f docker-compose.vpn.yml -f docker-compose.ha.yml -f docker-compose.downloads.yml \
+  -f docker-compose.vpn.yml -f docker-compose.downloads.yml \
   -f docker-compose.mediaserver.yml -f docker-compose.admin.yml -f docker-compose.immich.yml \
-  -f docker-compose.frigate.yml -f docker-compose.caddy.yml ps
+  -f docker-compose.caddy.yml ps
 ```
 If you add a compose file, update BOTH `run.sh` and `stop.sh`.
 
@@ -37,25 +39,26 @@ If you add a compose file, update BOTH `run.sh` and `stop.sh`.
 | File | Contents |
 |------|----------|
 | `docker-compose.vpn.yml` | `vpn` bridge network + Gluetun (NordVPN, currently OpenVPN) |
-| `docker-compose.downloads.yml` | qBittorrent, Sonarr, Radarr, Prowlarr, Bazarr, Recyclarr, Unpackerr (all via Gluetun); qbit-force-seed (host net) |
+| `docker-compose.downloads.yml` | qBittorrent, Sonarr, Radarr, Prowlarr, Recyclarr, Unpackerr (all via Gluetun); qbit-force-seed (host net) |
 | `docker-compose.mediaserver.yml` | Jellyfin, Jellyseerr (host net); Tuliprox (via Gluetun) |
-| `docker-compose.ha.yml` | Home Assistant (host), Zigbee2MQTT, Mosquitto |
-| `docker-compose.admin.yml` | Portainer, Netdata, Dozzle, Filebrowser, ntfy, Healthchecks, hc-heartbeat (via Gluetun) |
+| `docker-compose.ha.yml` | OFF: Home Assistant (host), Zigbee2MQTT, Mosquitto |
+| `docker-compose.admin.yml` | Filebrowser (active). Portainer, Netdata, Dozzle, ntfy, Healthchecks, hc-heartbeat are commented out |
 | `docker-compose.immich.yml` | Immich server, machine-learning, Redis (valkey), Postgres |
-| `docker-compose.frigate.yml` | Frigate NVR (host net) |
+| `docker-compose.frigate.yml` | OFF: Frigate NVR (host net) |
 | `docker-compose.caddy.yml` | Caddy reverse proxy with Tailscale HTTPS certs |
 
 Plex, Overseerr, Tautulli and Emby have been removed (replaced by Jellyfin/Jellyseerr).
 
 ## Network design
 
-- **Via Gluetun** (`network_mode: "service:gluetun"`): qBittorrent, Sonarr, Radarr, Prowlarr, Bazarr,
-  Recyclarr, Unpackerr, Tuliprox, hc-heartbeat. Their ports are published on the `gluetun` service.
+- **Via Gluetun** (`network_mode: "service:gluetun"`): qBittorrent, Sonarr, Radarr, Prowlarr,
+  Recyclarr, Unpackerr, Tuliprox. Their ports are published on the `gluetun` service.
   Gluetun has a healthcheck and a firewall kill-switch.
 - **Known failure mode:** when Gluetun restarts/recreates, containers sharing its namespace lose
   networking and must be restarted too. (`depends_on: service_healthy` only helps at startup.)
-- **Host network:** Jellyfin, Jellyseerr, Home Assistant, Frigate, Caddy, Portainer, Netdata, Dozzle, qbit-force-seed.
-- hc-heartbeat pings Healthchecks from inside the VPN namespace, so a missing ping indicates VPN trouble.
+- **Host network:** Jellyfin, Jellyseerr, Caddy, qbit-force-seed.
+- VPN trouble is caught by Hermes' daily health check (`projects/health-check/health_check.py`, 07:30, Telegram), not by Healthchecks/ntfy (removed).
+- Jellyfin: VAAPI hardware transcoding on, Trakt plugin removed, UDP 7359 open for client discovery. Subtitles are embedded in releases (no Bazarr).
 
 ## Storage
 
