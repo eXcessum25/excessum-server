@@ -115,23 +115,24 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
-  bazarr:
-    image: lscr.io/linuxserver/bazarr:latest
-    container_name: bazarr
-    environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
-    network_mode: "service:gluetun"
-    volumes:
-      - ${CONFIG_ROOT}/bazarr:/config
-      - ${TV_DIR}:/tv
-      - ${MOVIES_DIR}:/movies
-      - ${TV_UK_DIR}:/tv-uk
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    restart: unless-stopped
+  # Disabled 2026-11-10 (never downloaded a subtitle; subtitles are embedded in the releases). Uncomment to re-enable.
+#   bazarr:
+#     image: lscr.io/linuxserver/bazarr:latest
+#     container_name: bazarr
+#     environment:
+#       - PUID=${PUID}
+#       - PGID=${PGID}
+#       - TZ=${TZ}
+#     network_mode: "service:gluetun"
+#     volumes:
+#       - ${CONFIG_ROOT}/bazarr:/config
+#       - ${TV_DIR}:/tv
+#       - ${MOVIES_DIR}:/movies
+#       - ${TV_UK_DIR}:/tv-uk
+#     depends_on:
+#       gluetun:
+#         condition: service_healthy
+#     restart: unless-stopped
 
   unpackerr:
     image: golift/unpackerr:latest

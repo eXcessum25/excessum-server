@@ -1,37 +1,40 @@
 services:
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    network_mode: host
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${CONFIG_ROOT}/portainer:/data
-    restart: unless-stopped
+  # Disabled 2026-11-10 (unused). Uncomment to re-enable.
+#   portainer:
+#     image: portainer/portainer-ce:latest
+#     container_name: portainer
+#     network_mode: host
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock
+#       - ${CONFIG_ROOT}/portainer:/data
+#     restart: unless-stopped
 
-  netdata:
-    image: netdata/netdata:latest
-    container_name: netdata
-    network_mode: host
-    cap_add:
-      - SYS_PTRACE
-    security_opt:
-      - apparmor=unconfined
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ${CONFIG_ROOT}/netdata:/etc/netdata
-    restart: unless-stopped
+  # Disabled 2026-11-10 (unused). Uncomment to re-enable.
+#   netdata:
+#     image: netdata/netdata:latest
+#     container_name: netdata
+#     network_mode: host
+#     cap_add:
+#       - SYS_PTRACE
+#     security_opt:
+#       - apparmor=unconfined
+#     volumes:
+#       - /proc:/host/proc:ro
+#       - /sys:/host/sys:ro
+#       - /var/run/docker.sock:/var/run/docker.sock
+#       - ${CONFIG_ROOT}/netdata:/etc/netdata
+#     restart: unless-stopped
 
-  dozzle:
-    image: amir20/dozzle:latest
-    container_name: dozzle
-    network_mode: host
-    environment:
-      - DOZZLE_ADDR=:${DOZZLE_PORT}
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: unless-stopped
+  # Disabled 2026-11-10 (unused). Uncomment to re-enable.
+#   dozzle:
+#     image: amir20/dozzle:latest
+#     container_name: dozzle
+#     network_mode: host
+#     environment:
+#       - DOZZLE_ADDR=:${DOZZLE_PORT}
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock:ro
+#     restart: unless-stopped
 
   filebrowser:
     image: filebrowser/filebrowser:latest
@@ -47,51 +50,54 @@ services:
       - PGID=${PGID}
     restart: unless-stopped
 
-  ntfy:
-    image: binwiederhier/ntfy:latest
-    container_name: ntfy
-    command: serve
-    ports:
-      - ${NTFY_PORT}:80
-    environment:
-      - TZ=${TZ}
-      - NTFY_CACHE_FILE=/var/cache/ntfy/cache.db
-    volumes:
-      - ${CONFIG_ROOT}/ntfy/cache:/var/cache/ntfy
-    restart: unless-stopped
+  # Disabled 2026-11-10 (unused). Uncomment to re-enable.
+#   ntfy:
+#     image: binwiederhier/ntfy:latest
+#     container_name: ntfy
+#     command: serve
+#     ports:
+#       - ${NTFY_PORT}:80
+#     environment:
+#       - TZ=${TZ}
+#       - NTFY_CACHE_FILE=/var/cache/ntfy/cache.db
+#     volumes:
+#       - ${CONFIG_ROOT}/ntfy/cache:/var/cache/ntfy
+#     restart: unless-stopped
 
-  healthchecks:
-    image: healthchecks/healthchecks:latest
-    container_name: healthchecks
-    ports:
-      - ${HC_PORT}:8000
-    environment:
-      - SECRET_KEY=${HC_SECRET_KEY}
-      - DEBUG=False
-      - ALLOWED_HOSTS=${SERVER_IP},localhost,server
-      - SITE_ROOT=http://${SERVER_IP}:${HC_PORT}
-      - DB=sqlite
-      - DB_NAME=/data/hc.sqlite
-      - REGISTRATION_OPEN=False
-      - INTEGRATIONS_ALLOW_PRIVATE_IPS=True
-    volumes:
-      - ${CONFIG_ROOT}/healthchecks:/data
-    restart: unless-stopped
+  # Disabled 2026-11-10 (unused). Uncomment to re-enable.
+#   healthchecks:
+#     image: healthchecks/healthchecks:latest
+#     container_name: healthchecks
+#     ports:
+#       - ${HC_PORT}:8000
+#     environment:
+#       - SECRET_KEY=${HC_SECRET_KEY}
+#       - DEBUG=False
+#       - ALLOWED_HOSTS=${SERVER_IP},localhost,server
+#       - SITE_ROOT=http://${SERVER_IP}:${HC_PORT}
+#       - DB=sqlite
+#       - DB_NAME=/data/hc.sqlite
+#       - REGISTRATION_OPEN=False
+#       - INTEGRATIONS_ALLOW_PRIVATE_IPS=True
+#     volumes:
+#       - ${CONFIG_ROOT}/healthchecks:/data
+#     restart: unless-stopped
 
-  hc-heartbeat:
-    image: alpine:latest
-    container_name: hc-heartbeat
-    network_mode: "service:gluetun"
-    environment:
-      - HC_PING_URL=http://${SERVER_IP}:${HC_PORT}/ping/${HC_CHECK_UUID}
-    command: >-
-      sh -c "apk add --no-cache curl > /dev/null 2>&1 &&
-      while true; do
-        curl -m 10 -sf https://1.1.1.1 > /dev/null 2>&1 &&
-        curl -m 5 -s $$HC_PING_URL;
-        sleep 300;
-      done"
-    depends_on:
-      gluetun:
-        condition: service_healthy
-    restart: unless-stopped
+  # Disabled 2026-11-10 (unused). Uncomment to re-enable.
+#   hc-heartbeat:
+#     image: alpine:latest
+#     container_name: hc-heartbeat
+#     network_mode: "service:gluetun"
+#     environment:
+#       - HC_PING_URL=http://${SERVER_IP}:${HC_PORT}/ping/${HC_CHECK_UUID}
+#     command: >-
+#       sh -c "apk add --no-cache curl > /dev/null 2>&1 &&
+#       while true; do
+#         curl -m 10 -sf https://1.1.1.1 > /dev/null 2>&1 &&
+#         curl -m 5 -s $$HC_PING_URL;
+#         sleep 300;
+#       done"
+#     depends_on:
+#       gluetun:
+#         condition: service_healthy
+#     restart: unless-stopped

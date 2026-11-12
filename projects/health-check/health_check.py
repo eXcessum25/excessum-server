@@ -70,13 +70,31 @@ def recent_lines(container, hours=24):
 
 
 # ---------------------------------------------------------------- containers
+def active_container_names():
+    """container_name values that are NOT commented out in the compose files (disabled services are expected to be stopped)."""
+    names = set()
+    run_sh = open("/srv/excessum-server/run.sh").read()
+    for f in glob.glob("/srv/excessum-server/docker/docker-compose.*.yml"):
+        if os.path.basename(f) not in run_sh:
+            continue  # compose file removed from run.sh = intentionally off
+        for line in open(f):
+            m = re.match(r"\s+container_name:\s*(\S+)", line)
+            if m:
+                names.add(m.group(1))
+    return names
+
+
 def check_containers():
     rc, out = run(["docker", "ps", "-a", "--format", "{{json .}}"])
     if rc != 0:
         problems.append(f"docker ps failed: {out.strip()[:200]}")
         return
+    wanted = active_container_names()
     rows = [json.loads(l) for l in out.splitlines() if l.strip()]
+    rows = [c for c in rows if c["Names"] in wanted or c["State"] == "running"]
     for c in rows:
+        if c["Names"] not in wanted:
+            continue
         name, state, status = c["Names"], c["State"], c["Status"]
         if state != "running":
             problems.append(f"container {name} is {state} ({status})")
@@ -103,9 +121,14 @@ def uptime_s(status):
 def gluetun_dependents():
     """Containers whose compose service uses network_mode service:gluetun."""
     names = []
+    run_sh = open("/srv/excessum-server/run.sh").read()
     for f in glob.glob("/srv/excessum-server/docker/docker-compose.*.yml"):
+        if os.path.basename(f) not in run_sh:
+            continue  # compose file removed from run.sh = intentionally off
         cur = None
         for line in open(f):
+            if line.lstrip().startswith("#"):
+                continue  # disabled services are commented out
             m = re.match(r"\s+container_name:\s*(\S+)", line)
             if m:
                 cur = m.group(1)

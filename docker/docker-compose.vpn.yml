@@ -20,7 +20,6 @@ services:
       - "${PROWLARR_PORT}:9696"
       - "${SONARR_PORT}:8989"
       - "${RADARR_PORT}:7878"
-      - "${BAZARR_PORT}:6767"
       - "${TULIPROX_PORT}:8901"
     volumes:
       - ${CONFIG_ROOT}/gluetun:/gluetun

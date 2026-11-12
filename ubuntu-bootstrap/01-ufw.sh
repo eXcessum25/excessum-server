@@ -34,6 +34,10 @@ ufw_delete_anywhere_port 8096 tcp
 log "Allow Jellyfin (8096) from Docker bridge (Gluetun-routed services e.g. Sonarr/Radarr)"
 ufw allow from 172.20.0.0/16 to any port 8096 proto tcp
 
+log "Allow Jellyfin client discovery (7359/udp) from LAN only"
+ufw_allow_lan_port "${LAN_CIDR}" 7359 udp
+ufw_delete_anywhere_port 7359 udp
+
 log "Allow Jellyseerr (5055) from LAN only"
 ufw_allow_lan_port "${LAN_CIDR}" 5055 tcp
 ufw_delete_anywhere_port 5055 tcp
