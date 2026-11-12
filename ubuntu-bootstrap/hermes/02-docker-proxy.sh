@@ -31,6 +31,14 @@ PORT=2375
 # Still refused: inspect on /containers (the env-var leak route), exec/create/run/cp,
 # archive/export, any query string on the DELETE/prune routes above, system prune, networks,
 # swarm, and the raw socket.
+#
+# One real gotcha found live: every docker CLI command runs a version-negotiation handshake
+# first -- HEAD /_ping then GET /_ping, UNVERSIONED (no /v1.XX/ prefix) -- before its actual
+# request. The first cut of this allow-list only matched the *versioned* form and never
+# allowed HEAD at all, so every single command failed at the handshake, before even reaching
+# the thing it was trying to do (`docker images`/`image ls`/`system df` all failed this way;
+# oddly `docker rmi` appeared to work anyway due to how the client falls back after a failed
+# ping -- don't rely on that, it's not a safe signal that the handshake succeeded).
 log "Removing old proxy container $PROXY if present"
 docker rm -f "$PROXY" >/dev/null 2>&1 || true
 
@@ -55,7 +63,8 @@ docker run -d \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
   "$IMAGE" \
   -proxyport="${PORT}" \
-  -allowGET='/v1\..{1,2}/(version|_ping|containers/json|containers/[^/]+/logs|containers/[^/]+/stats|images/json|images/[^/]+/json|volumes|volumes/[^/]+)(\?.*)?' \
+  -allowGET='/(_ping|version)(\?.*)?|/v1\..{1,2}/(version|_ping|containers/json|containers/[^/]+/logs|containers/[^/]+/stats|images/json|images/[^/]+/json|volumes|volumes/[^/]+|system/df)(\?.*)?' \
+  -allowHEAD='/_ping(\?.*)?' \
   -allowPOST='/v1\..{1,2}/containers/[^/]+/(restart|start|stop)(\?.*)?|/v1\..{1,2}/images/prune' \
   -allowDELETE='/v1\..{1,2}/(containers|images|volumes)/[^/]+'
 
@@ -76,6 +85,8 @@ echo "not-yet-automated step."
 
 log "Done. Verify as hermes (sudo -iu hermes):"
 echo "  docker images | head -3                       # works"
+echo "  docker image ls | head -3                      # works"
+echo "  docker system df                               # works"
 echo "  docker volume ls | head -3                     # works"
 echo "  docker stats --no-stream                       # works"
 echo "  docker inspect $PROXY                          # 403 (env-var leak route, unchanged)"
